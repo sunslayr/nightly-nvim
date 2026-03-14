@@ -9,7 +9,7 @@
 
         tree-sitter-pkg.url = "github:tree-sitter/tree-sitter";
 
-	neovim-nightly-overlay = {
+        neovim-nightly-overlay = {
             url = "github:nix-community/neovim-nightly-overlay/master";
             inputs.nixpkgs.follows = "nixpkgs";
         };
