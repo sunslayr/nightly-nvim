@@ -22,6 +22,10 @@
 
             pkgs.lua-language-server
             pkgs.nixd
+            #pkgs.zig
+            pkgs.zls
+            #pkgs.go
+            pkgs.gopls
         ];
     in
     {
@@ -41,7 +45,7 @@
                 mkdir -p "${appDataDir}/.config/nvim"
 
                 # Copy init.lua from nix store, do not override
-                cp -n "${./init.lua}" "${appDataDir}/.config/nvim/init.lua"
+                cp --update=none "${./init.lua}" "${appDataDir}/.config/nvim/init.lua"
                 chmod 755 "${appDataDir}/.config/nvim/init.lua"
             '';
             env = {

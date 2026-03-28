@@ -16,7 +16,16 @@ vim.opt.winborder = "rounded"   -- Add a border around dialog boxes
 vim.opt.updatetime = 600        -- Set the timout for hover events
 vim.opt.colorcolumn = { 80 }    -- A list of screen columns that are highlighted with ColorColumn
 -- vim.opt.clipboard:append("unnamedplus")
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
+vim.opt.fillchars = {
+    foldopen = "⌄",
+    foldclose = ">",
+    foldsep = " ",
+}
 
+vim.opt.foldcolumn = "1"
+vim.opt.statuscolumn = "%s%l %C"
 
 vim.keymap.set('n', '<leader>o', ':update<CR> :source<CR>', { desc = 'Source file' })
 vim.keymap.set('n', '<leader>w', ':write<CR>', { desc = 'Write file to disc' })
@@ -79,10 +88,61 @@ vim.pack.add({
     { src = "https://github.com/saghen/blink.cmp" },
     -- Tree sitting or smth ig? fr no cap.
     { src = "https://github.com/nvim-treesitter/nvim-treesitter" },
+    -- Origami for code folding
+    { src = "https://github.com/chrisgrieser/nvim-origami" },
+    -- Adjustable statuscolumn
+    { src = "https://github.com/luukvbaal/statuscol.nvim" },
 })
 
 require("blink.cmp").setup({
     keymap = { preset = 'super-tab' },
+})
+
+local builtin = require("statuscol.builtin")
+
+-- removes numbers from fold column
+require("statuscol").setup({
+    segments = {
+        { text = { builtin.foldfunc }, click = 'v:lua.ScFa' },
+        { text = { '%s' }, click = 'v:lua.ScSa' },
+        {
+          text = { builtin.lnumfunc, ' ' },
+          condition = { true, builtin.not_empty },
+          click = 'v:lua.ScLa',
+        },
+    }
+})
+
+require("origami").setup({
+	useLspFoldsWithTreesitterFallback = {
+		enabled = true,
+		foldmethodIfNeitherIsAvailable = "indent", ---@type string|fun(bufnr: number): string
+	},
+	pauseFoldsOnSearch = true,
+	foldtext = {
+		enabled = true,
+		padding = {
+			character = " ",
+			width = 3,  ---@type number|fun(win: number, foldstart: number, currentVirtualTextLength: number): number
+			hlgroup = nil,
+		},
+		lineCount = {
+			template = "%d lines", -- `%d` is replaced with the number of folded lines
+			hlgroup = "Comment",
+		},
+		diagnosticsCount = true, -- uses hlgroups and icons from `vim.diagnostic.config().signs`
+		gitsignsCount = true, -- requires `gitsigns.nvim`
+		disableOnFt = { "snacks_picker_input" }, ---@type string[]
+	},
+	autoFold = {
+		enabled = true,
+		kinds = { "comment", "imports" }, ---@type lsp.FoldingRangeKind[]
+	},
+	foldKeymaps = {
+		setup = true, -- modifies `h`, `l`, `^`, and `$`
+		closeOnlyOnFirstColumn = false, -- `h` and `^` only fold in the 1st column
+		scrollLeftOnCaret = false, -- `^` should scroll left (basically mapped to `0^`)
+	},
 })
 
 vim.lsp.config('nvim-treesitter', {})
@@ -112,7 +172,9 @@ vim.lsp.enable({
     "nvim-treesitter", -- Install clang and cargo install tree-sitter-cli
     "lua_ls",
     "nixd",
-    -- "rust_analyzer", -- Obviously you need rust installed
+    "zls",
+    "gopls",
+    -- "requires_analyzer", -- Obviously you need rust installed
     -- "codebook",
     -- "pylsp",
     -- "bashls",
@@ -128,6 +190,8 @@ local ts_parsers = {
     'vimdoc',
     'python',
     'nix',
+    'zig',
+    'go',
 }
 require('nvim-treesitter').install(ts_parsers)
 
@@ -298,3 +362,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
             { desc = 'Show diagnostics' })
     end
 })
+
+vim.keymap.set('n', '<leader>th', function()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+end, { desc = 'Toggle LSP Inlay Hints' })

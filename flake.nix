@@ -25,7 +25,7 @@
                 ];
 
                 _module.args = {
-                    appDataDir = "/home/user/.portableNeovim";
+                    appDataDir = "/home/$USER/.portableNeovim";
                 };
             };
 }
